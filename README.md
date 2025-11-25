@@ -128,21 +128,3 @@ pyinstaller --noconfirm --onefile --add-data "app/static;app/static" --name ost-
 source .venv/bin/activate
 pyinstaller --noconfirm --onefile --add-data "app/static:app/static" --name ost-finder app/main.py
 Double-click the generated dist/ost-finder(.exe) and open http://127.0.0.1:8000.
-
-# Time taken to complete this Take Home Task
-Overall this challenge took me approximately 6 to 7 hours. The followings are the breakdown: 
-
-1. Environment & Setup
-Creating project structure, virtual env, installing dependencies, validating libpff / pypff - 0 h 30 m
-2. Backend Implementation
-Building FastAPI service, OST reader module, CLI tool, JSON & CSV export logic - 2 h 00 m
-3. Frontend UI
-Simple HTML + JS form, Fetch API integration, table rendering + CSV link - 1 h 00 m
-4. Synthetic Data & Testing
-Generating sample .ost files (12 & 10 000 emails), adding synthetic parser, verifying CLI/UI filters - 1 h 15 m
-5. Cross-Platform Packaging
-Writing run/build scripts, verifying on Windows & macOS, ensuring offline execution - 0 h 45 m
-6. Documentation & Polish
-README, testing scenarios, code comments, cleanup + GitHub prep - 0 h 45 m
-7. Bug Fix & Debugging
-Fixing pypff installation, adjusting synthetic hook, verifying 10k load - 0 h 30 m
