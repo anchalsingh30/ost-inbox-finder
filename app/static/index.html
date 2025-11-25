@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OST Inbox Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    label { display:block; margin: 8px 0 4px; }
+    input, select { padding: 8px; width: 100%; max-width: 360px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+    th, td { border: 1px solid #eee; padding: 8px; text-align: left; vertical-align: top;}
+    .row { display:flex; gap:16px; flex-wrap:wrap; align-items: end; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #333; background: #fff; cursor: pointer; }
+    .small { font-size:12px; color:#666; }
+  </style>
+</head>
+<body>
+  <h1>OST Inbox Finder</h1>
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>OST file</label>
+        <input type="file" id="ost" accept=".ost"/>
+        <div class="small">Only Inbox will be scanned</div>
+      </div>
+      <div>
+        <label>Start (local)</label>
+        <input type="datetime-local" id="start"/>
+      </div>
+      <div>
+        <label>End (local)</label>
+        <input type="datetime-local" id="end"/>
+      </div>
+      <div>
+        <label>Filter by</label>
+        <select id="mode">
+          <option value="received" selected>Received time</option>
+          <option value="sent">Sent time</option>
+        </select>
+      </div>
+      <div><button id="search">Search</button></div>
+    </div>
+  </div>
+  <div id="results"></div>
+<script>
+async function search() {
+  const fileInput = document.getElementById('ost');
+  if (!fileInput.files.length) { alert('Choose an OST file'); return; }
+  const start = document.getElementById('start').value;
+  const end = document.getElementById('end').value;
+  const mode = document.getElementById('mode').value;
+  const fd = new FormData();
+  fd.append('ost', fileInput.files[0]);
+  fd.append('start', start);
+  fd.append('end', end);
+  fd.append('mode', mode);
+  const res = await fetch('/api/search', { method: 'POST', body: fd });
+  if (!res.ok) { alert('Search failed: ' + await res.text()); return; }
+  render(await res.json());
+}
+function render(data) {
+  const div = document.getElementById('results');
+  if (!data || !data.items || !data.items.length) { div.innerHTML = '<p>No results.</p>'; return; }
+  const rows = data.items.map(it => `
+    <tr>
+      <td>${it.received_time || ''}</td>
+      <td>${it.sent_time || ''}</td>
+      <td>${it.from || ''}</td>
+      <td>${it.to || ''}</td>
+      <td>${it.cc || ''}</td>
+      <td><strong>${it.subject || ''}</strong><br/><span class="small">${(it.snippet || '').replaceAll('<','&lt;')}</span></td>
+    </tr>`).join('');
+  div.innerHTML = `
+    <div class="card">
+      <div class="row">
+        <div><strong>${data.items.length}</strong> emails matched.</div>
+        <div><a href="/api/export.csv?token=${encodeURIComponent(data.token)}" target="_blank">Download CSV</a></div>
+      </div>
+      <table>
+        <thead><tr><th>Received</th><th>Sent</th><th>From</th><th>To</th><th>Cc</th><th>Subject & Snippet</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+document.getElementById('search').addEventListener('click', search);
+</script>
+</body>
+</html>

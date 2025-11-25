@@ -1,0 +1,16 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# macOS system file
+.DS_Store
+
+# Sensitive OST or PST data files
+*.ost
+*.pst
+
+# Local data folders (if any)
+data/
