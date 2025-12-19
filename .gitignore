@@ -1,6 +1,12 @@
 # Virtual environment
 .venv/
 
+# Python virtual environment
+.venv/
+
+# macOS system files
+.DS_Store
+
 # Python cache
 __pycache__/
 *.pyc
@@ -14,3 +20,9 @@ __pycache__/
 
 # Local data folders (if any)
 data/
+# Environment files
+.env
+
+# Outputs / local files
+out.csv
+*.ost

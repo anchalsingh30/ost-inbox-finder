@@ -2,6 +2,8 @@
 import argparse, sys, csv, datetime as dt
 from .ost_reader import iter_inbox_messages
 
+#This file is for running in CLI, Reusing the same OST parsing logic used by the FastAPI backend
+#This ensures consistent behavior between CLI and web app
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Filter Inbox emails in an OST by time window")
     ap.add_argument("--ost", required=True, help="Path to .ost file")
@@ -33,3 +35,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+"""It was intentionally designed to share logic with
+ the FastAPI service so behavior stays consistent across interfaces while enabling scripting, testing, and automation.”
+"""

@@ -9,6 +9,13 @@ try:
 except Exception:  # pragma: no cover
     pypff = None  # type: ignore
 
+#pypff is needed when importing emails from outlook
+# Defensive import: allow app to start without pypff (for unit tests)
+try:
+    import pypff  
+except Exception:
+    pypff = None 
+#It is taking care of synthetic file
 def _read_synthetic_ost(ost_path: str):
     """
     If the file is a synthetic OST, return a list of message dicts.
@@ -38,6 +45,7 @@ def _read_synthetic_ost(ost_path: str):
     except Exception:
         return None
 
+#Converts various timestamp formats into ISO-8601 strings.
 def _to_iso(ts) -> Optional[str]:
     if not ts:
         return None
@@ -48,6 +56,8 @@ def _to_iso(ts) -> Optional[str]:
     except Exception:
         return None
 
+##Extracts To and Cc recipients from a pypff message object.
+#Returns comma-separated strings for UI display.
 def _collect_recipients(message) -> Tuple[str, str]:
     to_list, cc_list = [], []
     try:
@@ -66,6 +76,7 @@ def _collect_recipients(message) -> Tuple[str, str]:
         pass
     return (", ".join(to_list), ", ".join(cc_list))
 
+#Helper function: Recursively searches the folder tree to locate the Inbox folder
 def _find_inbox(folder) -> Optional[object]:
     try:
         name = getattr(folder, "get_name", lambda: "")() or ""
@@ -110,6 +121,7 @@ def _iter_synthetic_ost(ost_path: str):
     except Exception:
         return None
 
+#Core generator function.
 def iter_inbox_messages(ost_path: str) -> Iterator[Dict]:
     # Synthetic test path first
     syn = _read_synthetic_ost(ost_path)
@@ -120,6 +132,7 @@ def iter_inbox_messages(ost_path: str) -> Iterator[Dict]:
             yield x
         return
 
+    ##Note: the following code is being used for pypff to run it through the pypff and its not needed to run on the Web
     if pypff is None:
         raise RuntimeError("pypff not available. See README for libpff installation.")
 
@@ -132,6 +145,7 @@ def iter_inbox_messages(ost_path: str) -> Iterator[Dict]:
     get_msgs = getattr(inbox, "get_number_of_sub_messages", None) or getattr(inbox, "get_number_of_messages", None)
     get_msg = getattr(inbox, "get_sub_message", None) or getattr(inbox, "get_message", None)
     total = get_msgs() if get_msgs else 0
+    #Stream messages one by one
     for i in range(total):
         try:
             m = get_msg(i)
@@ -139,6 +153,7 @@ def iter_inbox_messages(ost_path: str) -> Iterator[Dict]:
             sender = getattr(m, "get_sender_name", lambda: None)() or getattr(m, "get_sender_email_address", lambda: None)()
             rec_time = getattr(m, "get_delivery_time", lambda: None)() or getattr(m, "get_client_submit_time", lambda: None)()
             sent_time = getattr(m, "get_client_submit_time", lambda: None)()
+            #Extract body safely
             body = None
             for getter in ("get_plain_text_body", "get_html_body", "get_body"):
                 try:
@@ -147,6 +162,7 @@ def iter_inbox_messages(ost_path: str) -> Iterator[Dict]:
                         break
                 except Exception:
                     continue
+            #Create short preview snippet
             snippet = (body or "")
             if isinstance(snippet, bytes):
                 snippet = snippet.decode(errors="ignore")
@@ -162,4 +178,5 @@ def iter_inbox_messages(ost_path: str) -> Iterator[Dict]:
                 "snippet": snippet,
             }
         except Exception:
+            #Skip corrupted messages without stopping the app
             continue
